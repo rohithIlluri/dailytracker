@@ -12,17 +12,18 @@ import java.util.List;
 
 @Data
 @Builder
-@Document(collection = "person")
+@Document(collection = "users")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Person {
+public class User {
 
     @Id
-    private String personId;
+    private String userId;
     private String firstName;
     private String lastName;
-    private Integer age;
-    private List<String> hobbies;
-    private List<Address> addresses;
+    private String role;
+    private String status;
+    private String createdUser;
+    private String createdDate;
 
 
 }
