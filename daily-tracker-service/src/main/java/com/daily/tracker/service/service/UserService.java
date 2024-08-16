@@ -13,4 +13,5 @@ public interface UserService {
     List<User> findAll();
     String modify(User user);
 
+    List<User> searchUsers(String role, String status, String createdDate);
 }
