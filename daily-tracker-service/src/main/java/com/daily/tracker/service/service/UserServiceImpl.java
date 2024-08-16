@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -28,41 +27,68 @@ public class UserServiceImpl implements UserService {
     @Override
     public String delete(User user) {
         try {
-            userRepository.delete(user);
-            return "User deleted successfully";
+            if (user != null && user.getUserId() != null) {
+                String userId = user.getUserId().trim();  // Trim any extraneous spaces
+                System.out.println("Attempting to delete user with ID: " + userId); // Log the user ID
+
+                // Check if the user exists
+                Optional<User> userOptional = userRepository.findById(userId);
+                if (userOptional.isPresent()) {
+                    userRepository.deleteById(userId);
+                    return "User deleted successfully";
+                } else {
+                    return "User not found";
+                }
+            } else {
+                return "Invalid user data";
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Error deleting user", e);
+            e.printStackTrace();
+            return "Failed to delete user";
+        }
+    }
+
+
+    @Override
+    public Optional<User> findById(String userId) {
+        try {
+            return userRepository.findById(String.valueOf(Long.valueOf(userId)));
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding user", e);
+        }
+    }
+
+    @Override
+    public List<User> findAll() {
+        try {
+            return userRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding users", e);
         }
     }
 
     @Override
     public String modify(User user) {
         try {
-            Optional<User>  existingUser = findById(user.getUserId());
-            if(existingUser.isPresent()) {
+            Optional<User> existingUser = findById(user.getUserId());
+            if (existingUser.isPresent()) {
                 return save(user);
+            } else {
+                return "User not found";
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Error modifying user", e);
         }
-        return "Not Modified";
     }
-    
+
     @Override
-    public Optional<User> findById(String userId){
-        try{
-            return (userRepository.findById(Long.valueOf(userId)));
-        } catch (Exception e) {
-            throw new RuntimeException("Error finding user", e);
-        }
-    }
-    @Override
-    public List<User> findAll() {
-        try{
-            return (userRepository.findAll());
-        } catch (Exception e) {
-            throw new RuntimeException("Error finding user", e);
+    public List<User> searchUsers(String role, String status, String createdDate) {
+        if (role != null && status != null && createdDate != null) {
+            return userRepository.findByRoleAndStatusAndCreatedDate(role, status, createdDate);
+        } else if (role != null && status != null) {
+            return userRepository.findByRoleAndStatusAndCreatedDateLike(role, status, createdDate);
+        } else {
+            return List.of();
         }
     }
 }
-

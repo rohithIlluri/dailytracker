@@ -1,13 +1,14 @@
 package com.daily.tracker.service.controller;
 
 import com.daily.tracker.service.collection.User;
+
 import com.daily.tracker.service.service.UserService;
-import jakarta.validation.constraints.Null;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -45,6 +46,22 @@ public class UserController {
         }
     }
 
+    @GetMapping("/search-users")
+    public ResponseEntity<List<User>> searchUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String createdDate
+    )
+    {
+        try {
+            List<User> users = userService.searchUsers(role, status, createdDate);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null); // Return error status and message
+        }
+
+    }
+
     @PutMapping("/modify-user")
     public ResponseEntity<String> modifyUser(@RequestBody User user) {
         try {
@@ -55,12 +72,23 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-user")
-    public ResponseEntity<String> deleteUser(@RequestBody User user) {
+    public ResponseEntity<String> deleteUser(@RequestBody(required = false) User user) {
+        if (user == null || user.getUserId() == null) {
+            return ResponseEntity.badRequest().body("User ID is missing in the request body");
+        }
+
         try {
-            return new ResponseEntity<>( userService.delete(user), HttpStatus.OK);
+            String result = userService.delete(user);
+            if ("User deleted successfully".equals(result)) {
+                return ResponseEntity.ok(result);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>("Failed to delete user", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+
 }
+
